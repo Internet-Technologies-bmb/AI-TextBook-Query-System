@@ -21,6 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('chatgpt/', include('chatgpt.urls')),
-    path('', include('frontend.urls'))
-    
+    path('', include('frontend.urls'))  # Corrected to match the root URL
 ]

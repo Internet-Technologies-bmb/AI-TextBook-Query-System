@@ -22,8 +22,13 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
     "@mui/icons-material": "^6.1.9",
     "@mui/material": "^6.1.9",
+    "react-hook-form": "^7.53.2",
     "react-router-dom": "^7.0.1"
-  }
+  },
+  "proxy": "http://localhost:8000"
+
 }
