@@ -3,6 +3,7 @@ import { render } from "react-dom";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"; 
 import AuthPage from "./AuthPage"; 
 import HomePage from "./HomePage";
+import CreateChatAndMessage from "./CreateChatandMessage";
 
 export default class App extends Component {
     constructor(props) {
@@ -15,6 +16,7 @@ export default class App extends Component {
                 <Routes>
                     <Route exact path="/" element={<AuthPage/>} />
                     <Route path="/home" element={<HomePage />} />
+                    <Route path="/chat" element={<CreateChatAndMessage />} />
                 </Routes>
             </Router>
         );
