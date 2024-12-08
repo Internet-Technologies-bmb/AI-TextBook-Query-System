@@ -14,30 +14,30 @@ const HomePage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('jwt'); // Fetch JWT token from localStorage
-
+  
       if (!token) {
         throw new Error('No authentication token found. Please log in.');
       }
-
+  
       const csrfToken = document.cookie
         .split('; ')
         .find(row => row.startsWith('csrftoken='))
         ?.split('=')[1]; // Fetch CSRF token from cookie if applicable
-
+  
       const response = await fetch('/api/get-user', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-CSRFToken': csrfToken,
+          'Authorization': `Bearer ${token}`,  // Make sure the token is included here
+          'X-CSRFToken': csrfToken, // Include CSRF token if required
         },
-        credentials: 'include', // Include cookies in request
+        credentials: 'include', // Include cookies if required
       });
-
+  
       if (!response.ok) {
         throw new Error(`Failed to fetch user data: ${response.status} ${response.statusText}`);
       }
-
+  
       const data = await response.json();
       setUserProfile(data); // Set the user profile data to state
     } catch (err) {
@@ -46,6 +46,7 @@ const HomePage = () => {
       setLoading(false);
     }
   };
+  
 
   const handleLogout = async () => {
     try {

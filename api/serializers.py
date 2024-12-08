@@ -1,73 +1,89 @@
 from rest_framework import serializers
 from .models import UserProfile, Chat, Message, Note, FileUpload
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ['id', 'email', 'password']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
 
-    def create(self, validated_data):
-        password = validated_data.get('password', None)  # Use .get() instead of function call
-        instance = self.Meta.model(**validated_data)
-        if password is not None:
-            instance.set_password(password)  # Hash the password
-
-        instance.save()
-        return instance
-
-
-
-class LoginUserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = UserProfile
-        fields = ['username', 'password']
-
-
-        
-class ChatSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    class Meta:
-        model = Chat
-        fields = ['id', 'user', 'title', 'created_at']
-        read_only_fields = ['user', 'created_at']
-
-        def validate_title(self, value):
-            if not value and ((len(value) > 255)):
-                raise serializers.ValidationError("Title cannot be blank or more than 255 characters")
-            return value
-        
-        def create(self, validated_data):
-            validated_data['user'] = self.context['request'].user
-            return super().create(validated_data)
-
-
+# Message Serializer
 class MessageSerializer(serializers.ModelSerializer):
-    role_display = serializers.CharField(source='get_role_display', read_only=True) # Get the display value of the role
+    role_display = serializers.CharField(source='get_role_display', read_only=True)  # Get display value of the role
 
     class Meta:
         model = Message
         fields = ['id', 'chat', 'user', 'role', 'role_display', 'content', 'created_at', 'is_note', 'file']
 
-
+# Note Serializer
 class NoteSerializer(serializers.ModelSerializer):
-    message = MessageSerializer(read_only=True)
+    message = MessageSerializer(read_only=True)  # Nested Message serializer
+
     class Meta:
         model = Note
         fields = ['id', 'message', 'highlighted_at']
 
+# Chat Serializer
+# Updated Chat Serializer
+class ChatSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)  # User associated with the chat
+    messages = MessageSerializer(many=True, read_only=True)  # Nested Message serializer for messages in this chat
 
+    class Meta:
+        model = Chat
+        fields = ['id', 'user', 'title', 'created_at', 'messages']  # Include messages in the fields
+        read_only_fields = ['user', 'created_at']
+
+    def validate_title(self, value):
+        # Ensure that the title is not empty and not too long.
+        if not value:
+            raise serializers.ValidationError("Title cannot be blank")
+        if len(value) > 255:
+            raise serializers.ValidationError("Title cannot exceed 255 characters")
+        return value
+
+    def create(self, validated_data):
+        # Automatically assign the user from the request context (assuming authenticated user)
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# User Serializer for individual User data
+# Updated User Serializer
+class UserSerializer(serializers.ModelSerializer):
+    chats = ChatSerializer(many=True, read_only=True)  # Chats related to the user, including their messages
+
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'email', 'password', 'chats']  # Include chats (with messages) in the fields
+        extra_kwargs = {
+            'password': {'write_only': True}  # Ensuring password is write-only
+        }
+
+    def create(self, validated_data):
+        password = validated_data.get('password', None)
+        instance = self.Meta.model(**validated_data)
+        if password:
+            instance.set_password(password)  # Hash the password before saving
+        instance.save()
+        return instance
+
+
+
+
+
+# Serializer for login
+class LoginUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ['email', 'password']  # Assuming the model uses email as the login field
+
+# FileUpload Serializer
 class FileUploadSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    chat = ChatSerializer(read_only=True)
+    user = UserSerializer(read_only=True)  # Nested User serializer (read-only)
+    chat = ChatSerializer(read_only=True)  # Nested Chat serializer (read-only)
+
     class Meta:
         model = FileUpload
-        fields = ['id', 'chat', 'user', 'file', 'uploaded_at']
+        fields = ['id', 'chat', 'user', 'file', 'uploaded_at']  # Assuming 'file' is the actual file field
 
-
-
-
-        
+    def create(self, validated_data):
+        """If necessary, you can modify the logic here to set the user or chat."""
+        validated_data['user'] = self.context['request'].user  # Automatically set the user to the logged-in user
+        return super().create(validated_data)
