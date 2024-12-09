@@ -292,3 +292,176 @@ button {
 .submit-button:disabled {
   background-color: #ccc;
 }
+
+
+/* Container styling */
+.file-upload-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f4f7fc;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Title styling */
+.title {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Form styling */
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+/* Input groups */
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-label {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+/* File upload and textarea styling */
+.input-file,
+.input-textarea {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: border-color 0.3s ease;
+}
+
+.input-file:focus,
+.input-textarea:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Submit button */
+.submit-btn {
+  padding: 12px 20px;
+  font-size: 1.1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+/* Loading and error messages */
+.loading-text {
+  text-align: center;
+  color: #555;
+  font-size: 1.1rem;
+}
+
+.error-text {
+  text-align: center;
+  color: red;
+  font-size: 1.1rem;
+}
+
+/* Response section */
+.response {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.response-title {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.response-json {
+  font-size: 1rem;
+  white-space: pre-wrap;
+  background-color: #f4f4f4;
+  padding: 15px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+
+
+/* Make the file upload form scrollable */
+.file-upload-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto; /* Allows vertical scrolling */
+  max-height: 80vh; /* Set a max height for scrolling */
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-label {
+  font-weight: bold;
+}
+
+.input-file, .input-textarea, .submit-btn {
+  width: 100%;
+}
+
+.submit-btn {
+  padding: 10px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.submit-btn:disabled {
+  background-color: #CCCCCC;
+}
+
+.loading-text, .error-text {
+  color: red;
+  font-weight: bold;
+}
+
+/* Make the response container scrollable if the response is large */
+.response-json-container {
+  max-height: 300px; /* Adjust this height as needed */
+  overflow-y: auto;  /* Enables vertical scrolling */
+  background-color: #f4f4f4;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.response-json {
+  white-space: pre-wrap; /* Allows wrapping of long text */
+  word-wrap: break-word;
+}

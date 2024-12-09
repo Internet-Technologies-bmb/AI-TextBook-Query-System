@@ -34,7 +34,7 @@ const CreateChatAndMessage = () => {
     }
 
     try {
-      const response = await fetch('/api/get-chat', {
+      const response = await fetch('/api/get-all-chats', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -183,14 +183,14 @@ const CreateChatAndMessage = () => {
     }
 
     try {
-      const response = await fetch(`/api/delete-chat/`, {
+      const response = await fetch(`/api/delete-chat/${chatId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
           'X-CSRFToken': csrfToken,
         },
         credentials: 'include',
-        body: JSON.stringify({ chat_id: chatId }),
+        // body: JSON.stringify({ chat_id: chatId }),
       });
 
       if (response.ok) {

@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('chatgpt/', include('chatgpt.urls')),
+    path('groqapi/', include('groqapi.urls')),  # Include the groqapi app URLs
     path('', include('frontend.urls'))  # Corrected to match the root URL
 ]
 if settings.DEBUG:

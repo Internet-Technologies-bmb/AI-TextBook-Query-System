@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class ChatgptConfig(AppConfig):
+class GroqapiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'chatgpt'
+    name = 'groqapi'
