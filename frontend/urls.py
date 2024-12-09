@@ -9,4 +9,5 @@ urlpatterns = [
     path('', index, name='index'),  # Root URL (i.e., http://127.0.0.1:8000/)
     path('home', index, name='home'),  # Optional additional URL for home (i.e., http://127.0.0.1:8000/home)
     path('chat',index, name='testchat'),
+    path('groq',index, name='testgroq'),
 ]

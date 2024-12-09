@@ -56,9 +56,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api.apps.ApiConfig',
     'rest_framework',
-    'chatgpt.apps.ChatgptConfig',
+    'api.apps.ApiConfig',
+    'groqapi.apps.GroqapiConfig',
     'frontend.apps.FrontendConfig',
     'corsheaders',
   #  'rest_framework_simplejwt'
@@ -169,3 +169,27 @@ CORS_ALLOW_CREDENTIALS = True
     ],
     # Other settings if needed
 }"""
+
+GROQ_API_KEY = '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'
+
+
+
+
+CSRF_COOKIE_NAME = 'csrftoken'
+
+# Ensure the CSRF cookie is accessible on the frontend (set to True in production with HTTPS)
+CSRF_COOKIE_SECURE = False  # Set to True for production with HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read the CSRF cookie
+CSRF_COOKIE_SAMESITE = 'Lax'  # or 'Strict', depending on your needs
+
+# You may need to whitelist the trusted origins
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000/']
+
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB
+
+
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'  # RabbitMQ as broker
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Redis as result backend
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
