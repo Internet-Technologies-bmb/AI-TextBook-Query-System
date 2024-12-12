@@ -193,3 +193,10 @@ CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'  # RabbitMQ as broker
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Redis as result backend
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+
+CELERY_WORKER_CONCURRENCY = 4  # Number of simultaneous workers
+CELERY_TASK_ACKS_LATE = True  # Enable task retries on failure
+CELERY_PREFETCH_MULTIPLIER = 1  # Limit prefetch to avoid task starvation
+CELERY_TASK_TIME_LIMIT = 300  # Maximum time (in seconds) a task can run
+CELERY_TASK_SOFT_TIME_LIMIT = 270  # Grace period before forcefully terminating
