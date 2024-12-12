@@ -2,39 +2,12 @@ import requests
 import aiohttp
 import asyncio
 from django.conf import settings
+import json
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 def query_groq_ai(user_message, file_content=None):
     """
-    Sends a request to the Groq AI API with the user message and optional file content.
-    """
-    url = 'https://api.groq.com/openai/v1/chat/completions'
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {settings.GROQ_API_KEY}',
-    }
-    payload = {
-        "model": "llama3-8b-8192",
-        "messages": [
-            {"role": "user", "content": user_message}
-        ]
-    }
-    
-    if file_content:
-        payload["messages"].append({
-            "role": "system",
-            "content": f"Here is the content of the uploaded file:\n{file_content}"
-        })
-
-    try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        return {"error": str(e)}
-
-async def query_groq_ai_async(user_message, file_content=None):
-    """
-    Asynchronously sends a request to the Groq AI API with the user message and optional file content.
+    Sends a request to the Groq AI API with proper logging.
     """
     url = 'https://api.groq.com/openai/v1/chat/completions'
     headers = {
@@ -45,28 +18,75 @@ async def query_groq_ai_async(user_message, file_content=None):
         "model": "llama3-8b-8192",
         "messages": [{"role": "user", "content": user_message}]
     }
-    
+
     if file_content:
         payload["messages"].append({
             "role": "system",
             "content": f"Here is the content of the uploaded file:\n{file_content}"
         })
-    
+
+    try:
+        print(f"Payload to Groq API: {json.dumps(payload, indent=2)}")
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+        print(f"Groq API Response: {response.text}")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {str(e)}")
+        return {"error": str(e)}
+
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+async def query_groq_ai_async(user_message, file_content=None):
+    """
+    Asynchronously sends a request to the Groq AI API with retry logic.
+    """
+    url = 'https://api.groq.com/openai/v1/chat/completions'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {settings.GROQ_API_KEY}',
+    }
+    payload = {
+        "model": "llama3-8b-8192",
+        "messages": [{"role": "user", "content": user_message}]
+    }
+
+    if file_content:
+        payload["messages"].append({
+            "role": "system",
+            "content": f"Here is the content of the uploaded file:\n{file_content}"
+        })
+
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, headers=headers, json=payload, timeout=30) as response:
+            async with session.post(url, headers=headers, json=payload, timeout=60) as response:
                 response.raise_for_status()
+                response_text = await response.text()
+                print(f"Groq API Async Response: {response_text}")
                 return await response.json()
     except aiohttp.ClientError as e:
+        print(f"Groq API async request error: {e}")
         return {"error": str(e)}
 
 async def process_chunks_async(user_message, chunks):
     """
-    Processes multiple chunks of file content concurrently using asynchronous requests.
+    Processes multiple chunks concurrently with robust error handling.
     """
     tasks = [query_groq_ai_async(user_message, chunk) for chunk in chunks]
-    responses = await asyncio.gather(*tasks)
-    return "\n".join([response.get('response', '') for response in responses if 'response' in response])
+    combined_responses = []
+
+    for idx, response in enumerate(await asyncio.gather(*tasks, return_exceptions=True)):
+        if isinstance(response, Exception):
+            print(f"Error processing chunk {idx}: {response}")
+            combined_responses.append(f"Error in chunk {idx}: {response}")
+        else:
+            print(f"Response for chunk {idx}: {response}")
+            combined_responses.append(response.get('response', '').strip() if isinstance(response, dict) else str(response).strip())
+
+    return "\n".join(combined_responses)
+
+
+
 
 def process_large_file_async(file_content, user_input):
     """
@@ -79,28 +99,26 @@ def process_large_file_async(file_content, user_input):
 
 import PyPDF2
 
-def extract_text_from_pdf(uploaded_file, chunk_size=2000):
+def extract_text_from_pdf(uploaded_file, chunk_size=1500):
     """
-    Extracts text from a PDF file and splits it into smaller chunks.
+    Extract text from a PDF and split it into chunks, ensuring valid content.
     """
     try:
         reader = PyPDF2.PdfReader(uploaded_file)
         text = ""
-        
-        for page_num in range(len(reader.pages)):
-            page = reader.pages[page_num]
-            text += page.extract_text() + "\n"  # Add extracted text from each page
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if not page_text.strip():
+                print("Empty page detected.")
+            text += page_text + "\n"
 
-        if not text:
+        if not text.strip():
             return ["No text found in the PDF."], 0
 
-        # Split the text into smaller chunks to avoid payload limits
         chunks = [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-        word_count = len(text.split())  # Count words in the extracted text
+        word_count = len(text.split())
+        print(f"Generated {len(chunks)} chunks for processing.")
         return chunks, word_count
-
     except Exception as e:
-        return [f"Error extracting text from PDF: {str(e)}"], 0
-
-
-
+        print(f"Error extracting text from PDF: {str(e)}")
+        return [f"Error extracting text: {str(e)}"], 0
