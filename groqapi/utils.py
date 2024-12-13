@@ -63,7 +63,8 @@ async def query_groq_ai_async(user_message, file_content=None):
                 response.raise_for_status()
                 response_text = await response.text()
                 print(f"Groq API Async Response: {response_text}")
-                return await response.json()
+                return json.loads(response_text)
+                # return await response.json()
     except aiohttp.ClientError as e:
         print(f"Groq API async request error: {e}")
         return {"error": str(e)}
@@ -75,16 +76,31 @@ async def process_chunks_async(user_message, chunks):
     tasks = [query_groq_ai_async(user_message, chunk) for chunk in chunks]
     combined_responses = []
 
+    # Process each chunk
     for idx, response in enumerate(await asyncio.gather(*tasks, return_exceptions=True)):
         if isinstance(response, Exception):
+            # Log and append error details for failed chunks
             print(f"Error processing chunk {idx}: {response}")
             combined_responses.append(f"Error in chunk {idx}: {response}")
+        elif isinstance(response, dict) and "choices" in response:
+            try:
+                # Extract the 'content' field
+                content = response["choices"][0]["message"]["content"]
+                print(f"Response for chunk {idx}: {content}")
+                combined_responses.append(content)  # Append extracted content
+            except (IndexError, KeyError) as e:
+                # Handle malformed responses
+                print(f"Error extracting content from chunk {idx}: {response} - {e}")
+                combined_responses.append(f"Error in chunk {idx}: Malformed response")
         else:
-            print(f"Response for chunk {idx}: {response}")
-            combined_responses.append(response.get('response', '').strip() if isinstance(response, dict) else str(response).strip())
+            # Handle unexpected response formats
+            print(f"Unexpected response format for chunk {idx}: {response}")
+            combined_responses.append(f"Unexpected response in chunk {idx}: {response}")
 
-    return "\n".join(combined_responses)
-
+    # Combine all responses into a single string
+    final_response = "\n".join(combined_responses)
+    print(f"Final Combined Response: {final_response}")
+    return final_response
 
 
 
