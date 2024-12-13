@@ -17,7 +17,7 @@ from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
 from rest_framework.permissions import AllowAny
 import jwt, datetime
 from django.views.decorators.csrf import csrf_exempt
-
+from groqapi.utils import query_groq_ai
 
 class UsersView(generics.ListAPIView):
     queryset = UserProfile.objects.all()
@@ -167,8 +167,10 @@ class DeleteChatAPIView(APIView):
         
 
 
+from rest_framework.exceptions import ValidationError
+
 class CreateMessageAPIView(APIView):
-    authentication_classes = [CustomJWTAuthentication]  # Use the custom authentication class
+    authentication_classes = [CustomJWTAuthentication]
 
     def post(self, request, chat_id):
         # Ensure the chat exists
@@ -184,26 +186,51 @@ class CreateMessageAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Prepare the data to create a message
-        data = {
-            'chat': chat.id,
+        # Prepare the user's message data
+        user_message_data = {
+            'chat': chat.id,  # Ensure chat.id is passed as a foreign key
             'user': request.user.id,
-            'role': request.data.get('role', 'user'),  # Default to 'user' role
+            'role': 'user',
             'content': request.data.get('content', ''),
-            'is_note': request.data.get('is_note', False),
-            # Use request.FILES.get('file') for file data
+            'is_note': False,  # User messages cannot be notes
             'file': request.FILES.get('file', None),
         }
 
-        # Serialize the message data
-        serializer = MessageSerializer(data=data)
+        # Serialize and validate the user's message
+        user_serializer = MessageSerializer(data=user_message_data, context={'chat': chat})
+        if user_serializer.is_valid():
+            user_message = user_serializer.save()
 
-        if serializer.is_valid():
-            serializer.save()  # Save the new message to the database
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # Generate AI response
+            ai_response = query_groq_ai(user_message.content)
 
-        # If serializer is not valid, return validation errors
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if "error" in ai_response:
+                return Response({'error': ai_response['error']}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Extract the AI response content
+            ai_content = ai_response.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+            # Save the AI response as a message
+            ai_message_data = {
+                'chat': chat.id,
+                'user': None,  # AI responses do not have a user
+                'role': 'assistant',
+                'content': ai_content,
+                'is_note': False,  # Default to not being a note
+            }
+            ai_serializer = MessageSerializer(data=ai_message_data, context={'chat': chat})
+            if ai_serializer.is_valid():
+                ai_message = ai_serializer.save()
+
+                return Response({
+                    'user_message': MessageSerializer(user_message).data,
+                    'ai_message': MessageSerializer(ai_message).data,
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response(ai_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 # Example Django view to fetch chat messages
@@ -234,3 +261,100 @@ class GetChatsAPIView(APIView):
         # Serialize and return the chats
         serializer = ChatSerializer(chats, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+class UpdateDeleteMessageAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+
+    def put(self, request, message_id):
+        try:
+            message = Message.objects.get(id=message_id)
+
+            # Ensure the message belongs to the user
+            if message.chat.user != request.user:
+                return Response({'error': 'Not authorized to edit this message'}, status=status.HTTP_403_FORBIDDEN)
+
+            serializer = MessageSerializer(message, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Message.DoesNotExist:
+            return Response({'error': 'Message not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, message_id):
+        try:
+            message = Message.objects.get(id=message_id)
+
+            # Ensure the message belongs to the user
+            if message.chat.user != request.user:
+                return Response({'error': 'Not authorized to delete this message'}, status=status.HTTP_403_FORBIDDEN)
+
+            message.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        except Message.DoesNotExist:
+            return Response({'error': 'Message not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+class MarkMessageAsNoteAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+
+    def post(self, request, message_id):
+        try:
+            message = Message.objects.get(id=message_id, role='assistant')  # Only allow assistant messages to be marked as notes
+        except Message.DoesNotExist:
+            return Response({'detail': 'Message not found or not an assistant message.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the user already has this message marked as a note
+        if Note.objects.filter(user=request.user, message=message).exists():
+            return Response({'detail': 'This message is already marked as a note.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the note
+        note = Note.objects.create(user=request.user, message=message)
+        return Response({'detail': 'Message marked as note.', 'note_id': note.id}, status=status.HTTP_201_CREATED)
+
+
+class GetUserNotesAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+
+    def get(self, request):
+        notes = Note.objects.filter(user=request.user).select_related('message')
+        serializer = NoteSerializer(notes, many=True)
+        return Response(serializer.data)
+
+
+class EditNoteAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+
+    def put(self, request, note_id):
+        try:
+            note = Note.objects.get(id=note_id, user=request.user)
+        except Note.DoesNotExist:
+            return Response({'detail': 'Note not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Assuming notes have text content that can be edited
+        content = request.data.get('content', None)
+        if content:
+            note.message.content = content  # Update message content if needed
+            note.message.save()
+        return Response({'detail': 'Note updated successfully.'})
+
+    
+
+class DeleteNoteAPIView(APIView):
+    authentication_classes = [CustomJWTAuthentication]
+
+    def delete(self, request, note_id):
+        try:
+            note = Note.objects.get(id=note_id, user=request.user)
+        except Note.DoesNotExist:
+            return Response({'detail': 'Note not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        note.delete()
+        return Response({'detail': 'Note deleted successfully.'})

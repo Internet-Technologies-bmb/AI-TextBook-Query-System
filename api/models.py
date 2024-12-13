@@ -49,11 +49,13 @@ class Message(models.Model):
 
 # Note Model (Marks a message as a "highlighted" note)
 class Note(models.Model):
-    message = models.OneToOneField(Message, on_delete=models.CASCADE, related_name='note')  # The message that is marked as a note
-    highlighted_at = models.DateTimeField(default=timezone.now)  # When the note was made
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)  # Link note to message
+    created_at = models.DateTimeField(default=timezone.now)  # Add default here
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Note on message {self.message.id} at {self.highlighted_at}"
+        return f"Note by {self.user.username} on {self.message.content[:20]}..."
 
 
 # File Upload Model (Handles file uploads for interactions like summarization)
