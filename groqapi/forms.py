@@ -6,3 +6,4 @@ class FileUploadForm(forms.Form):
         max_length=500,
         widget=forms.Textarea(attrs={'placeholder': 'Enter your message here...'})
     )
+    chat_id = forms.IntegerField(required=True)  # Add chat_id as a required field

@@ -1,21 +1,38 @@
 from rest_framework import serializers
 from .models import UserProfile, Chat, Message, Note, FileUpload
+from rest_framework.exceptions import ValidationError
 
-# Message Serializer
+
+
+
 class MessageSerializer(serializers.ModelSerializer):
-    role_display = serializers.CharField(source='get_role_display', read_only=True)  # Get display value of the role
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
 
     class Meta:
         model = Message
         fields = ['id', 'chat', 'user', 'role', 'role_display', 'content', 'created_at', 'is_note', 'file']
+        read_only_fields = ['chat', 'user', 'role', 'created_at', 'file']  # Prevent user from changing these fields
+
+    def validate_is_note(self, value):
+        # Only assistant messages can be marked as notes
+        if value and self.initial_data.get('role') != 'assistant':
+            raise serializers.ValidationError("Only AI responses can be marked as notes.")
+        return value
+
+    def create(self, validated_data):
+        # Ensure the chat field is set from the context if not already in validated_data
+        if 'chat' not in validated_data and 'chat' in self.context:
+            validated_data['chat'] = self.context['chat']
+        return super().create(validated_data)
+
 
 # Note Serializer
 class NoteSerializer(serializers.ModelSerializer):
-    message = MessageSerializer(read_only=True)  # Nested Message serializer
+    message = MessageSerializer()
 
     class Meta:
         model = Note
-        fields = ['id', 'message', 'highlighted_at']
+        fields = ['id', 'message', 'user', 'created_at', 'updated_at']
 
 # Chat Serializer
 # Updated Chat Serializer
