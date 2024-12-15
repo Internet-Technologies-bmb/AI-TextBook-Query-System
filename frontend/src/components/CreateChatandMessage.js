@@ -85,6 +85,40 @@ const CreateChatAndMessage = () => {
     }
   };
 
+  // Handle chat creation form submission
+  const handleCreateChatSubmit = async (e) => {
+    e.preventDefault();
+    if (!title) {
+      setErrorMessage('Title is required!');
+      return;
+    }
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('jwt');
+      if (!token) throw new Error('No authentication token found. Please log in.');
+      const csrfToken = getCSRFToken();
+      const response = await fetch('/api/create-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ title }),
+      });
+      if (!response.ok) throw new Error(`Failed to create chat: ${response.status} ${response.statusText}`);
+      const data = await response.json();
+      setResponseMessage('Chat created successfully!');
+      setChatId(data.id);  // Set the chat ID here
+    } catch (error) {
+      setErrorMessage('Failed to create chat. Please try again.');
+      console.error('Error creating chat:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle message creation
   const handleCreateMessageSubmit = async (e) => {
     e.preventDefault();
@@ -270,7 +304,7 @@ const CreateChatAndMessage = () => {
   return (
     <div className="create-chat-and-message-container">
       <h2>Create New Chat</h2>
-      <form onSubmit={handleCreateMessageSubmit}>
+      <form onSubmit={handleCreateChatSubmit}>
         <div className="form-group">
           <label htmlFor="title">Chat Title:</label>
           <input
