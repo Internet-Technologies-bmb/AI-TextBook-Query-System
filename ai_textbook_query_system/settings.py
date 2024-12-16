@@ -38,7 +38,9 @@ SECRET_KEY = 'django-insecure-bhl=nm+s4wp(^ym7kwho3vk&7(=-np*&g98bxesq$zzkf^j2m@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'https://ai-textbook-query-system.onrender.com/',
+]
 
 STATIC_URL = '/static/'
 
