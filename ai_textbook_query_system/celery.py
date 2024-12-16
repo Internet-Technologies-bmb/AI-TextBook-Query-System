@@ -30,16 +30,16 @@ app.autodiscover_tasks()
 #     CELERY_TASK_SERIALIZER='json',
 # )"""
 
-"""app.conf.update(
-    CELERY_BROKER_URL='amqp://guest:guest@localhost:5672//',  # RabbitMQ as broker
-    CELERY_RESULT_BACKEND=None,  # Disable result backend
-    CELERY_ACCEPT_CONTENT=['json'],
-    CELERY_TASK_SERIALIZER='json',
-)"""
+# """app.conf.update(
+#     CELERY_BROKER_URL='amqp://guest:guest@localhost:5672//',  # RabbitMQ as broker
+#     CELERY_RESULT_BACKEND=None,  # Disable result backend
+#     CELERY_ACCEPT_CONTENT=['json'],
+#     CELERY_TASK_SERIALIZER='json',
+# )"""
 
-app.conf.update(
-    CELERY_BROKER_URL='amqp://guest:guest@localhost:5672//',  # RabbitMQ as broker
-    CELERY_RESULT_BACKEND='redis://localhost:6379/0',  # Redis as result backend
-    CELERY_ACCEPT_CONTENT=['json'],
-    CELERY_TASK_SERIALIZER='json',
-)
+# app.conf.update(
+#     CELERY_BROKER_URL='amqp://guest:guest@localhost:5672//',  # RabbitMQ as broker
+#     CELERY_RESULT_BACKEND='redis://localhost:6379/0',  # Redis as result backend
+#     CELERY_ACCEPT_CONTENT=['json'],
+#     CELERY_TASK_SERIALIZER='json',
+# )
