@@ -16,30 +16,9 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
 # Update with Redis configuration for broker and backend
-
 """app.conf.update(
     CELERY_BROKER_URL='redis://red-ctg4fpm8ii6s73ckcrg0:6379/0',  # Broker (task queue)
     CELERY_RESULT_BACKEND='redis://red-ctg4fpm8ii6s73ckcrg0:6379/0',  # Backend (store task results)
     CELERY_ACCEPT_CONTENT=['json'],
     CELERY_TASK_SERIALIZER='json',
 )"""
-# """app.conf.update(
-#     CELERY_BROKER_URL='amqp://guest:guest@localhost:5672//',  # RabbitMQ as broker
-#     CELERY_RESULT_BACKEND='rpc://',  # RabbitMQ as result backend
-#     CELERY_ACCEPT_CONTENT=['json'],
-#     CELERY_TASK_SERIALIZER='json',
-# )"""
-
-# """app.conf.update(
-#     CELERY_BROKER_URL='amqp://guest:guest@localhost:5672//',  # RabbitMQ as broker
-#     CELERY_RESULT_BACKEND=None,  # Disable result backend
-#     CELERY_ACCEPT_CONTENT=['json'],
-#     CELERY_TASK_SERIALIZER='json',
-# )"""
-
-# app.conf.update(
-#     CELERY_BROKER_URL='amqp://guest:guest@localhost:5672//',  # RabbitMQ as broker
-#     CELERY_RESULT_BACKEND='redis://localhost:6379/0',  # Redis as result backend
-#     CELERY_ACCEPT_CONTENT=['json'],
-#     CELERY_TASK_SERIALIZER='json',
-# )
