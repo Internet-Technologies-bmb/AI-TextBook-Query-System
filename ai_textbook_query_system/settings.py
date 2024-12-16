@@ -204,8 +204,8 @@ CSRF_TRUSTED_ORIGINS = [
 DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB
 
 
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'  # RabbitMQ as broker
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Redis as result backend
+CELERY_BROKER_URL = 'redis://red-ctg4fpm8ii6s73ckcrg0:6379/0'  # RabbitMQ as broker
+CELERY_RESULT_BACKEND = 'redis://red-ctg4fpm8ii6s73ckcrg0:6379/0'  # Redis as result backend
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
