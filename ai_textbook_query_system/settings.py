@@ -39,7 +39,9 @@ SECRET_KEY = 'django-insecure-bhl=nm+s4wp(^ym7kwho3vk&7(=-np*&g98bxesq$zzkf^j2m@
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'https://ai-textbook-query-system.onrender.com/',
+    'ai-textbook-query-system.onrender.com',
+    'localhost',
+    '127.0.0.1',
 ]
 
 STATIC_URL = '/static/'
@@ -193,7 +195,10 @@ CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read the CSRF cookie
 CSRF_COOKIE_SAMESITE = 'Lax'  # or 'Strict', depending on your needs
 
 # You may need to whitelist the trusted origins
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000/']
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000/',
+    'https://ai-textbook-query-system.onrender.com/',
+]
 
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB
