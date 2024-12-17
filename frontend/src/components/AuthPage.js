@@ -63,7 +63,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="center">
+    <div className="center" style={{ backgroundColor: '#00008b'}}>
       <AuthForm
         isRegister={isRegister}
         onSubmit={handleSubmit}
