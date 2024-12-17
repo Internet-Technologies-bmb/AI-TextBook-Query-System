@@ -37,10 +37,10 @@ const AuthPage = () => {
         if (response.ok) {
           if (!isRegister) {
             localStorage.setItem('jwt', result.jwt);
-            alert('Login successful!');
+            //alert('Login successful!');
             navigate('/home');  // Redirect to home page after login
           } else {
-            alert('Registration successful!');
+            //alert('Registration successful!');
             setIsRegister(false);  // Switch to login form
           }
         } else {
