@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; 
-import { Card, Typography, Grid, Box, Avatar, AppBar, Toolbar, Button } from '@mui/material'; 
-import { People as PeopleIcon } from '@mui/icons-material'; 
+import { Card, Typography, Grid, Box, Avatar, AppBar, Toolbar, Button, IconButton } from '@mui/material'; 
+import { People as PeopleIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'; 
 
 const HomePage = () => {
   const [userProfile, setUserProfile] = useState({}); // Initialize with an empty object
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false); // Declare isEditing state
+  const [notes, setNotes] = useState([]);
   const navigate = useNavigate();
+
+  const getCSRFToken = () => {
+    return document.cookie
+      .split('; ')
+      .find(row => row.startsWith('csrftoken='))
+      ?.split('=')[1];
+  };
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -19,10 +26,7 @@ const HomePage = () => {
         throw new Error('No authentication token found. Please log in.');
       }
   
-      const csrfToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1]; // Fetch CSRF token from cookie if applicable
+      const csrfToken = getCSRFToken();
   
       const response = await fetch('/api/get-user', {
         method: 'GET',
@@ -46,6 +50,53 @@ const HomePage = () => {
       setLoading(false);
     }
   };
+
+  const fetchNotes = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('jwt');
+      const csrfToken = getCSRFToken();
+
+      const response = await fetch('/api/notes/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch notes.');
+      const data = await response.json();
+      setNotes(data); // Store notes in state
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnmarkNote = async (noteId) => {
+    try {
+      const token = localStorage.getItem('jwt');
+      const csrfToken = getCSRFToken();
+
+      const response = await fetch(`/api/note/${noteId}/delete/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) throw new Error('Failed to unmark note.');
+      setNotes(notes.filter(note => note.id !== noteId)); // Remove note from state
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   
 
   const handleLogout = async () => {
@@ -83,12 +134,10 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    fetchUserData(); // Fetch user data when component mounts
+    fetchUserData();
+    fetchNotes(); 
   }, []); 
 
-  const handleEditClick = () => {
-    setIsEditing(!isEditing);
-  };
 
   if (loading) {
     return <div>Loading...</div>; 
@@ -114,15 +163,38 @@ const HomePage = () => {
         <Toolbar sx={{ justifyContent: 'space-between', backgroundColor: '#252525'}}>
           <Typography variant="h6">AI TextBook Query System</Typography>
           <Box>
-            <Button component={Link} to="/" color="inherit">Home</Button>
+            <Button component={Link} to="/home" color="inherit">Home</Button>
             <Button onClick={handleLogout} color="inherit">Logout</Button>
           </Box>
         </Toolbar>
       </AppBar>
 
+       {/* User Notes */}
+       <Box sx={{ padding: 4, color: 'white' }}>
+        <Typography variant="h5" gutterBottom>My Notes</Typography>
+        {notes.length > 0 ? (
+          <Grid container spacing={2}>
+            {notes.map((note) => (
+              <Grid item xs={12} sm={6} md={4} key={note.id}>
+                <Card sx={{ padding: 2, backgroundColor: '#3c4856' }}>
+                  <Typography variant="body1">{note.message?.content || 'No content'}</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <IconButton onClick={() => handleUnmarkNote(note.id)} color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Typography>No notes available.</Typography>
+        )}
+      </Box>
+
       {/* Footer */}
       <Box width={'100vw'} sx={{textAlign: 'center', backgroundColor: '#252525' }}>
-        <Typography variant="body2" color="textSecondary" style={{ padding: '16px 0' }}>
+        <Typography variant="body2" style={{ padding: '16px 0' }}>
           &copy; 2024 AI TextBook Query System. Created by Corleone II
         </Typography>
       </Box>
