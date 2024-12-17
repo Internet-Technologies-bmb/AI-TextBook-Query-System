@@ -122,7 +122,7 @@ const AuthForm = ({ isRegister, onSubmit, loading, error, toggleForm }) => {
             </>
           ) : (
             <>
-              Don't have account?{' '}
+              Don't have an account?{' '}
               <Button onClick={toggleForm}>
                 Register
               </Button>
