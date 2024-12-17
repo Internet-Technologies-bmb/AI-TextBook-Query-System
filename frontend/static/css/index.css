@@ -7,6 +7,7 @@ body {
 
 #main {
   position: fixed;
+  background-color: grey;
   width: 100%;
   height: 100%;
   left: 0;
@@ -19,7 +20,7 @@ body {
 }
 
 .center {
-  background-color: darkblue;
+  background-color: grey;
   position: absolute;
   top: 50%;
   left: 50%;
