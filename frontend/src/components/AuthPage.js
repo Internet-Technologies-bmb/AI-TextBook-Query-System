@@ -65,13 +65,7 @@ const AuthPage = () => {
 
   return (
     <div className="center">
-      <AuthForm
-        isRegister={isRegister}
-        onSubmit={handleSubmit}
-        loading={loading}
-        error={error}
-        toggleForm={toggleForm}
-      />
+      
     </div>
   );
 };
