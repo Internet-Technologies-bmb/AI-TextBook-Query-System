@@ -107,7 +107,7 @@ const HomePage = () => {
       minHeight: '100vh', 
       width: '100%',
       overflowY: 'auto',
-      background: '#eeeeee'
+      background: '#2a3442'
     }}>
       {/* Navbar */}
       <AppBar position="static">
@@ -121,7 +121,7 @@ const HomePage = () => {
       </AppBar>
 
       {/* Footer */}
-      <Box width={'100vw'} sx={{ padding: 2, textAlign: 'center', backgroundColor: '#252525' }}>
+      <Box width={'100vw'} sx={{textAlign: 'center', backgroundColor: '#252525' }}>
         <Typography variant="body2" color="textSecondary" style={{ padding: '16px 0' }}>
           &copy; 2024 AI TextBook Query System. Created by Corleone II
         </Typography>
