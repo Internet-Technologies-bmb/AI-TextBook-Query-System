@@ -41,7 +41,7 @@ const AuthForm = ({ isRegister, onSubmit, loading, error, toggleForm }) => {
           <Grid item xs={12}>
             <TextField
               fullWidth
-              label="Emaidfsddl"
+              label="Email"
               type="email"
               variant="outlined"
               {...register('email', { required: 'Email is required' })}
@@ -122,7 +122,7 @@ const AuthForm = ({ isRegister, onSubmit, loading, error, toggleForm }) => {
             </>
           ) : (
             <>
-              Don't have an account?{' '}
+              Don't have account?{' '}
               <Button onClick={toggleForm}>
                 Register
               </Button>
