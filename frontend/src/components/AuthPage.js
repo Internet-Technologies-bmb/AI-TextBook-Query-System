@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthForm from './AuthForm';
-import './AuthPage.css'
 
 const AuthPage = () => {
   const [isRegister, setIsRegister] = useState(false);
