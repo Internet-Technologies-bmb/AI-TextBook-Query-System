@@ -111,7 +111,7 @@ const HomePage = () => {
     }}>
       {/* Navbar */}
       <AppBar position="static">
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Toolbar sx={{ justifyContent: 'space-between', backgroundColor: '#252525'}}>
           <Typography variant="h6">AI TextBook Query System</Typography>
           <Box>
             <Button component={Link} to="/" color="inherit">Home</Button>
@@ -120,42 +120,10 @@ const HomePage = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Main content */}
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        flex: 1, 
-        padding: 3,
-        boxShadow: 2,
-      }}>
-        {/* User Info */}
-        <Typography variant="h5" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
-          {userProfile.first_name || 'First Name'} {userProfile.last_name || 'Last Name'}
-        </Typography>
-        <Typography variant="body1" color="textSecondary" sx={{ marginBottom: 2 }}>
-          {userProfile.title || 'Title'}
-        </Typography>
-
-        {/* Contact Info */}
-        <Typography variant="body1" color="textSecondary" sx={{ marginBottom: 1 }}>
-          @{userProfile.username || 'Username'}
-        </Typography>
-        <Typography variant="body1" color="textSecondary" sx={{ marginBottom: 2 }}>
-          {userProfile.email || 'Email'}
-        </Typography>
-
-        {/* Edit Profile Button */}
-        <Button variant="outlined" onClick={handleEditClick}>
-          {isEditing ? 'Save Changes' : 'Edit Profile'}
-        </Button>
-      </Box>
-
       {/* Footer */}
-      <Box width={'100%'} sx={{ padding: 2, textAlign: 'center', backgroundColor: '#f5f5f5' }}>
-        <Typography variant="body2" color="textSecondary">
-          &copy; 2024 AI TextBook Query System. Created by ...
+      <Box width={'100vw'} sx={{ padding: 2, textAlign: 'center', backgroundColor: '#252525' }}>
+        <Typography variant="body2" color="textSecondary" style={{ padding: '16px 0' }}>
+          &copy; 2024 AI TextBook Query System. Created by Corleone II
         </Typography>
       </Box>
     </Box>
