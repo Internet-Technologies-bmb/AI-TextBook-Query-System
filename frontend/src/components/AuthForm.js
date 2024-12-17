@@ -41,7 +41,7 @@ const AuthForm = ({ isRegister, onSubmit, loading, error, toggleForm }) => {
           <Grid item xs={12}>
             <TextField
               fullWidth
-              label="Email"
+              label="Emaidfsddl"
               type="email"
               variant="outlined"
               {...register('email', { required: 'Email is required' })}
