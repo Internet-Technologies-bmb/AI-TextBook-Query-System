@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, List, ListItem, ListItemButton, TextField, Button, Divider, IconButton, Alert } from '@mui/material';
-import { AttachFile as AttachFileIcon, Send as SendIcon } from '@mui/icons-material';
+import { AttachFile as AttachFileIcon, Send as SendIcon, StarBorder as StarBorderIcon } from '@mui/icons-material';
 import AppBarComponent from './AppBarComponent';
 
 const CreateChatAndMessage = () => {
@@ -107,26 +107,25 @@ const CreateChatAndMessage = () => {
 
   
   const handleMarkAsNote = async (message) => {
-    // const token = localStorage.getItem('jwt');
-    // const csrfToken = getCSRFToken();
+    const token = localStorage.getItem('jwt');
+    const csrfToken = getCSRFToken();
 
-    // try {
-    //   const response = await fetch(`/api/message/${message.id}/mark-as-note/`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       'Authorization': `Bearer ${token}`,
-    //       'X-CSRFToken': csrfToken,
-    //     },
-    //     credentials: 'include',
-    //   });
+    try {
+      const response = await fetch(`/api/message/${message.id}/mark-as-note/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+      });
 
-    //   const data = await response.json();
-    //   console.log('API Response:', data); // Check the structure of the response
+      const data = await response.json();
+      console.log('API Response:', data); // Check the structure of the response
 
-    // } catch (error) {
-    //   setErrorMessage('Error marking message as note: ' + error.message);
-    // }
+    } catch (error) {
+      setErrorMessage('Error marking message as note: ' + error.message);
+    }
   };
 
   // Handle sending a message
