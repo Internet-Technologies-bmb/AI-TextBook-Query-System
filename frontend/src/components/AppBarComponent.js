@@ -6,7 +6,7 @@ const AppBarComponent = ({ handleLogout }) => {
   return (
     <AppBar position="static">
       <Toolbar sx={{ justifyContent: 'space-between', backgroundColor: '#252525' }}>
-        <Typography variant="h6">AI TextBook Query System NEW</Typography>
+        <Typography variant="h6">AI TextBook Query System</Typography>
         <Box>
           <Button component={Link} to="/home" color="inherit">Home</Button>
           <Button component={Link} to="/chat" color="inherit">Chat</Button>
