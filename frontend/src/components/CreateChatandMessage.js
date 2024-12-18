@@ -105,27 +105,28 @@ const CreateChatAndMessage = () => {
     }
   };
 
-  // Mark message as a note
+  
   const handleMarkAsNote = async (message) => {
-    const token = localStorage.getItem('jwt');
-    const csrfToken = getCSRFToken();
+    // const token = localStorage.getItem('jwt');
+    // const csrfToken = getCSRFToken();
 
-    try {
-      const response = await fetch(`/api/message/${message.id}/mark-as-note/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-      });
+    // try {
+    //   const response = await fetch(`/api/message/${message.id}/mark-as-note/`, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'Authorization': `Bearer ${token}`,
+    //       'X-CSRFToken': csrfToken,
+    //     },
+    //     credentials: 'include',
+    //   });
 
-      const data = await response.json();
-      console.log('API Response:', data); // Check the structure of the response
+    //   const data = await response.json();
+    //   console.log('API Response:', data); // Check the structure of the response
 
-    } catch (error) {
-      setErrorMessage('Error marking message as note: ' + error.message);
-    }
+    // } catch (error) {
+    //   setErrorMessage('Error marking message as note: ' + error.message);
+    // }
   };
 
   // Handle sending a message
@@ -250,7 +251,7 @@ const CreateChatAndMessage = () => {
                 }}
               >
                 {msg.content}
-                {msg.role != 'user' && (
+                {msg.role === 'user' && (
                   <IconButton
                     onClick={() => handleMarkAsNote(msg)}
                     size="small"
