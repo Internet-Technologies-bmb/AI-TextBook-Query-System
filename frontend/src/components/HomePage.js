@@ -195,6 +195,8 @@ const HomePage = () => {
           <Typography variant="h6">AI TextBook Query System</Typography>
           <Box>
             <Button component={Link} to="/home" color="inherit">Home</Button>
+            <Button component={Link} to="/chat" color="inherit">Chat</Button>
+            <Button component={Link} to="/groq" color="inherit">Groq</Button>
             <Button onClick={handleLogout} color="inherit">Logout</Button>
           </Box>
         </Toolbar>
