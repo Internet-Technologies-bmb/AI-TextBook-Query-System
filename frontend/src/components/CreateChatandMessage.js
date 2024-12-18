@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import AppBarComponent from './AppBarComponent';
+import FooterComponent from './FooterComponent';
 
 const CreateChatAndMessage = () => {
   const [title, setTitle] = useState('');
@@ -22,6 +24,39 @@ const CreateChatAndMessage = () => {
       .find(row => row.startsWith('csrftoken='))
       ?.split('=')[1];
     return csrfToken;
+  };
+
+  const handleLogout = async () => {
+    try {
+      const csrfToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Logout failed');
+      }
+
+      localStorage.removeItem('jwt');
+      document.cookie = 'jwt=; Max-Age=-1; path=/';
+
+      setUserProfile({});
+      setError(null);
+
+      alert('You have been logged out!');
+      navigate('/');
+    } catch (err) {
+      setError('Logout failed: ' + err.message);
+    }
   };
 
   // Fetch all chats
@@ -303,6 +338,7 @@ const CreateChatAndMessage = () => {
 
   return (
     <div className="create-chat-and-message-container">
+      <AppBarComponent handleLogout={handleLogout} />
       <h2>Create New Chat</h2>
       <form onSubmit={handleCreateChatSubmit}>
         <div className="form-group">
@@ -418,6 +454,7 @@ const CreateChatAndMessage = () => {
           </ul>
         </div>
       )}
+      <FooterComponent />
     </div>
   );
 };
