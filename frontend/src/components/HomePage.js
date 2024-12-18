@@ -192,9 +192,19 @@ const HomePage = () => {
         )}
       </Box>
 
-      {/* Footer */}
-      <Box width={'100vw'} sx={{textAlign: 'center', backgroundColor: '#252525' }}>
-        <Typography variant="body2" style={{ padding: '16px 0' }}>
+      <Box
+        component="footer"
+        sx={{
+          position: 'relative',
+          bottom: 0,
+          width: '100%',
+          textAlign: 'center',
+          backgroundColor: '#252525',
+          padding: '16px 0',
+          marginTop: 'auto',
+        }}
+      >
+        <Typography variant="body2">
           &copy; 2024 AI TextBook Query System. Created by Corleone II
         </Typography>
       </Box>
