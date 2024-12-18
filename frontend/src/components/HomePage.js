@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; 
 import { Card, Typography, Grid, Box, AppBar, Toolbar, Button, IconButton, TextField } from '@mui/material'; 
-import { Delete as DeleteIcon, Edit as EditIcon, Save as SaveIcon } from '@mui/icons-material'; 
+import { Delete as DeleteIcon, Edit as EditIcon, Save as SaveIcon } from '@mui/icons-material';
+import AppBarComponent from './AppBarComponent';
+import FooterComponent from './FooterComponent';
 
 const HomePage = () => {
   const [userProfile, setUserProfile] = useState({});
@@ -190,17 +192,7 @@ const HomePage = () => {
       background: '#2a3442'
     }}>
       {/* Navbar */}
-      <AppBar position="static">
-        <Toolbar sx={{ justifyContent: 'space-between', backgroundColor: '#252525'}}>
-          <Typography variant="h6">AI TextBook Query System</Typography>
-          <Box>
-            <Button component={Link} to="/home" color="inherit">Home</Button>
-            <Button component={Link} to="/chat" color="inherit">Chat</Button>
-            <Button component={Link} to="/groq" color="inherit">Groq</Button>
-            <Button onClick={handleLogout} color="inherit">Logout</Button>
-          </Box>
-        </Toolbar>
-      </AppBar>
+      <AppBarComponent handleLogout={handleLogout} />
 
       <Box sx={{ paddingTop: '32px', paddingBottom: '32px', color: 'white', width: '100%' }}>
         <Typography variant="h5" gutterBottom sx={{ paddingLeft: '16px' }}>My Notes</Typography>
@@ -253,23 +245,7 @@ const HomePage = () => {
         )}
       </Box>
 
-
-      <Box
-        component="footer"
-        sx={{
-          position: 'relative',
-          bottom: 0,
-          width: '100%',
-          textAlign: 'center',
-          backgroundColor: '#252525',
-          padding: '16px 0',
-          marginTop: 'auto',
-        }}
-      >
-        <Typography variant="body2" color='white'>
-          &copy; 2024 AI TextBook Query System. Created by Corleone II
-        </Typography>
-      </Box>
+      <FooterComponent />
     </Box>
   );
 };
