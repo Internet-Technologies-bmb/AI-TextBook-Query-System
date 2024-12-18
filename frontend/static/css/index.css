@@ -302,6 +302,7 @@ button {
   background-color: #f4f7fc;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 3rem;
 }
 
 /* Title styling */
@@ -335,6 +336,7 @@ button {
 .input-file,
 .input-textarea {
   padding: 10px;
+  padding-right: 0;
   font-size: 1rem;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -475,7 +477,6 @@ button {
   align-items: center;
   height: 100vh;
   width: 100vw;
-  padding: 1rem;
   box-sizing: border-box;
   background-color: #f7f7f7;
 }

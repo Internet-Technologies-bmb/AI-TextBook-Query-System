@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AppBarComponent from './AppBarComponent';
 
 const TestGroqApi = () => {
     const [file, setFile] = useState(null);
@@ -24,6 +25,39 @@ const TestGroqApi = () => {
     const handleInputChange = (e) => {
         setUserInput(e.target.value);
     };
+
+    const handleLogout = async () => {
+        try {
+          const csrfToken = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+    
+          const response = await fetch('/api/logout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken,
+            },
+            credentials: 'include',
+          });
+    
+          if (!response.ok) {
+            throw new Error('Logout failed');
+          }
+    
+          localStorage.removeItem('jwt');
+          document.cookie = 'jwt=; Max-Age=-1; path=/';
+    
+          setUserProfile({});
+          setError(null);
+    
+          alert('You have been logged out!');
+          navigate('/');
+        } catch (err) {
+          setError('Logout failed: ' + err.message);
+        }
+      };
 
     const pollTaskStatus = async (taskId) => {
         for (let i = 0; i < 30; i++) {
@@ -116,6 +150,7 @@ const TestGroqApi = () => {
 
     return (
         <div className="file-upload-container fullscreen">
+            <AppBarComponent handleLogout={handleLogout} />
             <div className="upload-form">
                 <h2 className="title">Upload File and Chat with Groq AI</h2>
                 <form onSubmit={handleSubmit} className="form">
