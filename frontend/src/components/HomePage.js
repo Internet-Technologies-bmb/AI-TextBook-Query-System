@@ -200,8 +200,8 @@ const HomePage = () => {
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ padding: 4, color: 'white', width: '100%' }}>
-        <Typography variant="h5" gutterBottom>My Notes</Typography>
+      <Box sx={{ paddingTop: '32px', paddingBottom: '32px', color: 'white', width: '100%' }}>
+        <Typography variant="h5" paddingRight={'16px'} gutterBottom>My Notes</Typography>
         {notes.length > 0 ? (
           <Box
             sx={{
