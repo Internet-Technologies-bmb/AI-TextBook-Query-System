@@ -203,7 +203,7 @@ const HomePage = () => {
       </AppBar>
 
       <Box sx={{ paddingTop: '32px', paddingBottom: '32px', color: 'white', width: '100%' }}>
-        <Typography variant="h5" gutterBottom sx={{ paddingRight: '16px' }}>My Notes</Typography>
+        <Typography variant="h5" gutterBottom sx={{ marginRight: '16px' }}>My Notes</Typography>
         {notes.length > 0 ? (
           <Box
             sx={{
