@@ -105,6 +105,35 @@ const CreateChatAndMessage = () => {
     }
   };
 
+  // Mark message as a note
+  const handleMarkAsNote = async (message) => {
+    const token = localStorage.getItem('jwt');
+    const csrfToken = getCSRFToken();
+
+    try {
+      const response = await fetch(`/api/message/${message.id}/mark-as-note/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('API Response:', data); // Check the structure of the response
+
+      if (response.ok) {
+        // Add the newly created note to the notes state
+        setNotes((prevNotes) => [...prevNotes, data]);
+      } else {
+        setErrorMessage(data.error || 'Failed to mark message as note');
+      }
+    } catch (error) {
+      setErrorMessage('Error marking message as note: ' + error.message);
+    }
+  };
+
   // Handle sending a message
   const handleSendMessage = async () => {
     if (!file) {
@@ -227,6 +256,20 @@ const CreateChatAndMessage = () => {
                 }}
               >
                 {msg.content}
+                {msg.role === 'assistant' && (
+                  <IconButton
+                    onClick={() => handleMarkAsNote(msg)}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      right: '-32px',
+                      transform: 'translateY(-50%)',
+                    }}
+                  >
+                    <StarBorderIcon />
+                  </IconButton>
+                )}
               </Typography>
             </Box>
           ))}
