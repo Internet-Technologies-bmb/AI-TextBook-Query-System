@@ -147,33 +147,6 @@ const CreateChatAndMessage = () => {
     }
   };
 
-  // Delete a chat
-  const handleDeleteChat = async (chatId) => {
-    // const token = localStorage.getItem('jwt');
-    // const csrfToken = getCSRFToken();
-
-    // try {
-    //   const response = await fetch(`/api/delete-chat/${chatId}`, {
-    //     method: 'DELETE',
-    //     headers: {
-    //       'Authorization': `Bearer ${token}`,
-    //       'X-CSRFToken': csrfToken,
-    //     },
-    //     credentials: 'include',
-    //   });
-
-    //   if (!response.ok) throw new Error('Failed to delete chat.');
-
-    //   setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
-    //   if (chatId === chatId) {
-    //     setChatId(null);
-    //     setChatMessages([]);
-    //   }
-    // } catch (error) {
-    //   setErrorMessage(error.message || 'Failed to delete chat.');
-    // }
-  };
-
   useEffect(() => {
     fetchChats();
   }, []);
@@ -219,15 +192,6 @@ const CreateChatAndMessage = () => {
             <ListItem
               key={chat.id}
               disablePadding
-              secondaryAction={
-                <IconButton
-                  edge="end"
-                  color="error"
-                  onClick={() => handleDeleteChat(chat.id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              }
               onClick={() => {
                 setChatId(chat.id);
                 fetchChatMessages(chat.id);
