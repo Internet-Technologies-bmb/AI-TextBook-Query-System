@@ -250,15 +250,15 @@ const CreateChatAndMessage = () => {
                 }}
               >
                 {msg.content}
-                {msg.role === 'user' && (
+                {msg.role === 'assistant' && (
                   <IconButton
                     onClick={() => handleMarkAsNote(msg)}
                     size="small"
                     sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      right: '-32px',
-                      transform: 'translateY(-50%)',
+                      position: 'relative',
+                      marginLeft: '8px',
+                      verticalAlign: 'middle',
+                      color: '#ff9800',
                     }}
                   >
                     <StarBorderIcon />
