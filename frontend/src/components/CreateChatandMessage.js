@@ -1,62 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { Box, Typography, List, ListItem, ListItemButton, TextField, Button, Divider, IconButton } from '@mui/material';
+import { AttachFile as AttachFileIcon, Send as SendIcon } from '@mui/icons-material';
 import AppBarComponent from './AppBarComponent';
 import FooterComponent from './FooterComponent';
 
 const CreateChatAndMessage = () => {
   const [title, setTitle] = useState('');
-  const [responseMessage, setResponseMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [chats, setChats] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatId, setChatId] = useState(null);
-  const [chats, setChats] = useState([]);
   const [message, setMessage] = useState('');
   const [file, setFile] = useState(null);
-  const [messageLoading, setMessageLoading] = useState(false);
-  const [notes, setNotes] = useState([]);
-  const [editNoteId, setEditNoteId] = useState(null);
-  const [editedNoteContent, setEditedNoteContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Fetch CSRF token from cookies
+  // Fetch CSRF token
   const getCSRFToken = () => {
-    const csrfToken = document.cookie
+    return document.cookie
       .split('; ')
       .find(row => row.startsWith('csrftoken='))
       ?.split('=')[1];
-    return csrfToken;
-  };
-
-  const handleLogout = async () => {
-    try {
-      const csrfToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-
-      const response = await fetch('/api/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Logout failed');
-      }
-
-      localStorage.removeItem('jwt');
-      document.cookie = 'jwt=; Max-Age=-1; path=/';
-
-      setUserProfile({});
-      setError(null);
-
-      alert('You have been logged out!');
-      navigate('/');
-    } catch (err) {
-      setError('Logout failed: ' + err.message);
-    }
   };
 
   // Fetch all chats
@@ -90,11 +53,6 @@ const CreateChatAndMessage = () => {
 
   // Fetch messages for a selected chat
   const fetchChatMessages = async (chatId) => {
-    if (!chatId) {
-      setErrorMessage('Invalid chat ID');
-      return;
-    }
-
     const token = localStorage.getItem('jwt');
     const csrfToken = getCSRFToken();
 
@@ -108,30 +66,26 @@ const CreateChatAndMessage = () => {
         credentials: 'include',
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setChatMessages(data.messages || []);
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(`Failed to fetch chat messages: ${errorData.error || response.statusText}`);
-      }
+      if (!response.ok) throw new Error('Failed to fetch chat messages.');
+
+      const data = await response.json();
+      setChatMessages(data.messages || []);
     } catch (error) {
-      setErrorMessage('Error fetching messages: ' + error.message);
+      setErrorMessage(error.message || 'Failed to fetch chat messages.');
     }
   };
 
-  // Handle chat creation form submission
-  const handleCreateChatSubmit = async (e) => {
-    e.preventDefault();
+  // Handle creating a new chat
+  const handleCreateChat = async () => {
     if (!title) {
-      setErrorMessage('Title is required!');
+      setErrorMessage('Chat title is required.');
       return;
     }
-    setLoading(true);
+
+    const token = localStorage.getItem('jwt');
+    const csrfToken = getCSRFToken();
+
     try {
-      const token = localStorage.getItem('jwt');
-      if (!token) throw new Error('No authentication token found. Please log in.');
-      const csrfToken = getCSRFToken();
       const response = await fetch('/api/create-chat', {
         method: 'POST',
         headers: {
@@ -142,38 +96,26 @@ const CreateChatAndMessage = () => {
         credentials: 'include',
         body: JSON.stringify({ title }),
       });
-      if (!response.ok) throw new Error(`Failed to create chat: ${response.status} ${response.statusText}`);
-      const data = await response.json();
-      setResponseMessage('Chat created successfully!');
-      setChatId(data.id);  // Set the chat ID here
+
+      if (!response.ok) throw new Error('Failed to create chat.');
+
+      const newChat = await response.json();
+      setChats((prevChats) => [...prevChats, newChat]);
+      setTitle('');
     } catch (error) {
-      setErrorMessage('Failed to create chat. Please try again.');
-      console.error('Error creating chat:', error);
-    } finally {
-      setLoading(false);
+      setErrorMessage(error.message || 'Failed to create chat.');
     }
   };
 
-  // Handle message creation
-  const handleCreateMessageSubmit = async (e) => {
-    e.preventDefault();
-    setMessageLoading(true);
-    setErrorMessage(null);
+  // Handle sending a message
+  const handleSendMessage = async () => {
+    if (!message && !file) {
+      setErrorMessage('Message content or file is required.');
+      return;
+    }
 
     const token = localStorage.getItem('jwt');
     const csrfToken = getCSRFToken();
-
-    if (!token) {
-      setErrorMessage('No authentication token found.');
-      setMessageLoading(false);
-      return;
-    }
-
-    if (!chatId) {
-      setErrorMessage('Chat ID is required to send a message.');
-      setMessageLoading(false);
-      return;
-    }
 
     const formData = new FormData();
     formData.append('user_input', message);
@@ -191,271 +133,145 @@ const CreateChatAndMessage = () => {
         body: formData,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setMessage('');
-        setFile(null);
-
-        // Update chat messages immediately
-        setChatMessages((prevMessages) => [
-          ...prevMessages,
-          { role: 'user', content: message },
-          { role: 'assistant', content: data.result },
-        ]);
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.error || 'Failed to send message.');
-      }
-    } catch (err) {
-      setErrorMessage('An error occurred: ' + err.message);
-    } finally {
-      setMessageLoading(false);
-    }
-  };
-
-  // Mark message as a note
-  const handleMarkAsNote = async (message) => {
-    const token = localStorage.getItem('jwt');
-    const csrfToken = getCSRFToken();
-
-    try {
-      const response = await fetch(`/api/message/${message.id}/mark-as-note/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-      });
+      if (!response.ok) throw new Error('Failed to send message.');
 
       const data = await response.json();
-      console.log('API Response:', data); // Check the structure of the response
+      setChatMessages((prevMessages) => [
+        ...prevMessages,
+        { role: 'user', content: message },
+        { role: 'assistant', content: data.result },
+      ]);
 
-      if (response.ok) {
-        // Add the newly created note to the notes state
-        setNotes((prevNotes) => [...prevNotes, data]);
-      } else {
-        setErrorMessage(data.error || 'Failed to mark message as note');
-      }
+      setMessage('');
+      setFile(null);
     } catch (error) {
-      setErrorMessage('Error marking message as note: ' + error.message);
-    }
-  };
-
-  // Unmark message as a note
-  const handleUnmarkNote = async (noteId) => {
-    const token = localStorage.getItem('jwt');
-    const csrfToken = getCSRFToken();
-
-    try {
-      const response = await fetch(`/api/note/${noteId}/delete/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        // Remove the note from the notes state immediately
-        const updatedNotes = notes.filter((note) => note.id !== noteId);
-        setNotes(updatedNotes);
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.error || 'Failed to unmark note.');
-      }
-    } catch (error) {
-      setErrorMessage('Error unmarking note: ' + error.message);
-    }
-  };
-
-  // Handle note editing
-  const handleEditNote = async (noteId, newContent) => {
-    const token = localStorage.getItem('jwt');
-    const csrfToken = getCSRFToken();
-
-    try {
-      const response = await fetch(`/api/note/${noteId}/edit/`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-CSRFToken': csrfToken,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ content: newContent }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Update the note in the state
-        setNotes((prevNotes) => prevNotes.map((note) =>
-          note.id === noteId ? { ...note, message: { ...note.message, content: newContent } } : note
-        ));
-        setEditNoteId(null); // Clear the edit state
-        setEditedNoteContent('');
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.error || 'Failed to edit note.');
-      }
-    } catch (error) {
-      setErrorMessage('Error editing note: ' + error.message);
-    }
-  };
-
-  // Fetch all notes for the user
-  const fetchUserNotes = async () => {
-    const token = localStorage.getItem('jwt');
-    const csrfToken = getCSRFToken();
-
-    try {
-      const response = await fetch('/api/notes/', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setNotes(data);
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.error || 'Failed to fetch notes.');
-      }
-    } catch (error) {
-      setErrorMessage('Error fetching notes: ' + error.message);
+      setErrorMessage(error.message || 'Failed to send message.');
     }
   };
 
   useEffect(() => {
     fetchChats();
-    fetchUserNotes(); // Fetch user notes on component mount
   }, []);
 
   return (
-    <div className="create-chat-and-message-container">
-      <AppBarComponent handleLogout={handleLogout} />
-      <h2>Create New Chat</h2>
-      <form onSubmit={handleCreateChatSubmit}>
-        <div className="form-group">
-          <label htmlFor="title">Chat Title:</label>
-          <input
-            id="title"
-            type="text"
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* Sidebar */}
+      <Box
+        sx={{
+          width: '300px',
+          backgroundColor: '#2a3442',
+          color: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '16px',
+        }}
+      >
+        <Typography variant="h6" gutterBottom>
+          Chats
+        </Typography>
+        <Box sx={{ marginBottom: '16px' }}>
+          <TextField
+            fullWidth
+            placeholder="New chat title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter chat title"
-            required
+            variant="outlined"
+            size="small"
+            sx={{ marginBottom: '8px', backgroundColor: 'white' }}
           />
-        </div>
-        <div className="form-group">
-          <button type="submit" className="submit-button" disabled={loading || messageLoading}>
-            {loading ? 'Creating...' : 'Create Chat'}
-          </button>
-        </div>
-      </form>
-
-      {responseMessage && <p className="response-message">{responseMessage}</p>}
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
-
-      <div>
-        <h3>Existing Chats</h3>
-        <ul>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={handleCreateChat}
+          >
+            Create Chat
+          </Button>
+        </Box>
+        <Divider sx={{ marginBottom: '16px' }} />
+        <List>
           {chats.map((chat) => (
-            <li key={chat.id}>
-              <button onClick={() => { setChatId(chat.id); fetchChatMessages(chat.id); }}>
+            <ListItem
+              key={chat.id}
+              disablePadding
+              onClick={() => {
+                setChatId(chat.id);
+                fetchChatMessages(chat.id);
+              }}
+            >
+              <ListItemButton sx={{ color: 'white' }}>
                 {chat.title}
-              </button>
-            </li>
+              </ListItemButton>
+            </ListItem>
           ))}
-        </ul>
-      </div>
+        </List>
+      </Box>
 
-      {chatId && (
-        <div className="create-message-container">
-          <h3>Create a New Message for Chat ID: {chatId}</h3>
-          <form onSubmit={handleCreateMessageSubmit} encType="multipart/form-data">
-            <div className="form-group">
-              <label htmlFor="message">Message Content:</label>
-              <textarea
-                id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type your message here..."
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="file">Attach File (optional):</label>
-              <input
-                type="file"
-                id="file"
-                onChange={(e) => setFile(e.target.files[0])}
-              />
-            </div>
-            <div className="form-group">
-              <button type="submit" disabled={messageLoading}>
-                {messageLoading ? 'Sending...' : 'Send Message'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      {/* Chat Area */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f5' }}>
+        <AppBarComponent />
+        <Box sx={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
+          {chatMessages.map((msg, index) => (
+            <Box
+              key={index}
+              sx={{
+                marginBottom: '16px',
+                textAlign: msg.role === 'user' ? 'right' : 'left',
+              }}
+            >
+              <Typography
+                sx={{
+                  display: 'inline-block',
+                  padding: '8px 16px',
+                  backgroundColor: msg.role === 'user' ? '#2196f3' : '#e0e0e0',
+                  borderRadius: '8px',
+                  color: msg.role === 'user' ? 'white' : 'black',
+                }}
+              >
+                {msg.content}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
 
-      {chatMessages.length > 0 && (
-        <div className="messages-container">
-          <h3>Messages</h3>
-          <ul>
-            {chatMessages.map((msg, index) => (
-              <li key={index}>
-                <strong>{msg.role}:</strong> {msg.content}
-                {msg.role === 'assistant' && (
-                  <button onClick={() => handleMarkAsNote(msg)}>
-                    Mark as Note
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {notes.length > 0 && (
-        <div className="notes-container">
-          <h3>Notes</h3>
-          <ul>
-            {notes.map((note, index) => (
-              <div key={index} className="note-box">
-                <li>
-                  <strong>{note.user.username}:</strong>
-                  {editNoteId === note.id ? (
-                    <div>
-                      <textarea
-                        value={editedNoteContent}
-                        onChange={(e) => setEditedNoteContent(e.target.value)}
-                        placeholder="Edit your note"
-                      />
-                      <button onClick={() => handleEditNote(note.id, editedNoteContent)}>Save</button>
-                    </div>
-                  ) : (
-                    <p>{note.message ? note.message.content : 'No content available'}</p>
-                  )}
-                </li>
-                {editNoteId !== note.id && (
-                  <button onClick={() => { setEditNoteId(note.id); setEditedNoteContent(note.message.content); }}>Edit</button>
-                )}
-                <button onClick={() => handleUnmarkNote(note.id)}>Unmark</button>
-              </div>
-            ))}
-          </ul>
-        </div>
-      )}
-      <FooterComponent />
-    </div>
+        {/* Message Input */}
+        <Box
+          sx={{
+            display: 'flex',
+            padding: '16px',
+            borderTop: '1px solid #ddd',
+            alignItems: 'center',
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <IconButton component="label">
+            <AttachFileIcon />
+            <input
+              type="file"
+              hidden
+              onChange={(e) => setFile(e.target.files[0])}
+            />
+          </IconButton>
+          <TextField
+            fullWidth
+            placeholder="Type your message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            variant="outlined"
+            size="small"
+            sx={{ marginLeft: '8px', marginRight: '8px' }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSendMessage}
+            endIcon={<SendIcon />}
+          >
+            Send
+          </Button>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
