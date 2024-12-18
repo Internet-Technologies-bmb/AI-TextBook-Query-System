@@ -123,12 +123,6 @@ const CreateChatAndMessage = () => {
       const data = await response.json();
       console.log('API Response:', data); // Check the structure of the response
 
-      if (response.ok) {
-        // Add the newly created note to the notes state
-        setNotes((prevNotes) => [...prevNotes, data]);
-      } else {
-        setErrorMessage(data.error || 'Failed to mark message as note');
-      }
     } catch (error) {
       setErrorMessage('Error marking message as note: ' + error.message);
     }
@@ -256,7 +250,7 @@ const CreateChatAndMessage = () => {
                 }}
               >
                 {msg.content}
-                {msg.role === 'assistant' && (
+                {msg.role != 'user' && (
                   <IconButton
                     onClick={() => handleMarkAsNote(msg)}
                     size="small"
