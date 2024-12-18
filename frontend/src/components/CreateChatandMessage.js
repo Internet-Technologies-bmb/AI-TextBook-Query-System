@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, List, ListItem, ListItemButton, TextField, Button, Divider, IconButton } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemButton, TextField, Button, Divider, IconButton, Alert } from '@mui/material';
 import { AttachFile as AttachFileIcon, Send as SendIcon } from '@mui/icons-material';
 import AppBarComponent from './AppBarComponent';
-import FooterComponent from './FooterComponent';
 
 const CreateChatAndMessage = () => {
   const [title, setTitle] = useState('');
@@ -11,7 +10,6 @@ const CreateChatAndMessage = () => {
   const [chatId, setChatId] = useState(null);
   const [message, setMessage] = useState('');
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Fetch CSRF token
@@ -109,8 +107,8 @@ const CreateChatAndMessage = () => {
 
   // Handle sending a message
   const handleSendMessage = async () => {
-    if (!message && !file) {
-      setErrorMessage('Message content or file is required.');
+    if (!file) {
+      setErrorMessage('You must attach a file to send a message.');
       return;
     }
 
@@ -120,7 +118,7 @@ const CreateChatAndMessage = () => {
     const formData = new FormData();
     formData.append('user_input', message);
     formData.append('chat_id', chatId);
-    if (file) formData.append('file', file);
+    formData.append('file', file);
 
     try {
       const response = await fetch('/groqapi/upload', {
@@ -234,41 +232,61 @@ const CreateChatAndMessage = () => {
           ))}
         </Box>
 
+        {/* Error Message */}
+        {errorMessage && (
+          <Alert
+            severity="error"
+            onClose={() => setErrorMessage('')}
+            sx={{ margin: '16px' }}
+          >
+            {errorMessage}
+          </Alert>
+        )}
+
         {/* Message Input */}
         <Box
           sx={{
             display: 'flex',
-            padding: '16px',
+            flexDirection: 'column',
             borderTop: '1px solid #ddd',
-            alignItems: 'center',
             backgroundColor: '#ffffff',
+            padding: '16px',
           }}
         >
-          <IconButton component="label">
-            <AttachFileIcon />
-            <input
-              type="file"
-              hidden
-              onChange={(e) => setFile(e.target.files[0])}
+          {/* Display file name if a file is attached */}
+          {file && (
+            <Typography variant="caption" color="textSecondary" sx={{ marginBottom: '8px' }}>
+              Attached file: {file.name}
+            </Typography>
+          )}
+
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton component="label">
+              <AttachFileIcon />
+              <input
+                type="file"
+                hidden
+                onChange={(e) => setFile(e.target.files[0])}
+              />
+            </IconButton>
+            <TextField
+              fullWidth
+              placeholder="Type your message..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              variant="outlined"
+              size="small"
+              sx={{ marginLeft: '8px', marginRight: '8px' }}
             />
-          </IconButton>
-          <TextField
-            fullWidth
-            placeholder="Type your message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            variant="outlined"
-            size="small"
-            sx={{ marginLeft: '8px', marginRight: '8px' }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSendMessage}
-            endIcon={<SendIcon />}
-          >
-            Send
-          </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSendMessage}
+              endIcon={<SendIcon />}
+            >
+              Send
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Box>
