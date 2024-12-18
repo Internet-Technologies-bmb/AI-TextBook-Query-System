@@ -152,16 +152,16 @@ const TestGroqApi = () => {
         <div className="file-upload-container fullscreen">
             <AppBarComponent handleLogout={handleLogout} />
             <div className="upload-form">
-                <h2 className="title">Upload File and Chat with Groq AI</h2>
+                <h2 className="title" style={{ color: 'white' }}>Upload File and Chat with Groq AI</h2>
                 <form onSubmit={handleSubmit} className="form">
                     <div className="input-group">
-                        <label htmlFor="file-upload" className="input-label">
+                        <label htmlFor="file-upload" className="input-label" style={{ color: 'white' }}>
                             <span>File Upload</span>
-                            <input type="file" id="file-upload" onChange={handleFileChange} className="input-file" />
+                            <input type="file" id="file-upload" onChange={handleFileChange} className="input-file" style={{ color: 'white' }}/>
                         </label>
                     </div>
                     <div className="input-group">
-                        <label htmlFor="user-input" className="input-label">
+                        <label htmlFor="user-input" className="input-label" style={{ color: 'white' }}>
                             <span>Your Message</span>
                             <textarea
                                 id="user-input"
