@@ -115,7 +115,7 @@ def process_large_file_async(file_content, user_input):
 
 import PyPDF2
 
-def extract_text_from_pdf(uploaded_file, chunk_size=1500):
+def extract_text_from_pdf(uploaded_file, chunk_size=20000):
     """
     Extract text from a PDF and split it into chunks, ensuring valid content.
     """
