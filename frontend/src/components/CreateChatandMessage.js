@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, List, ListItem, ListItemButton, TextField, Button, Divider, IconButton, Alert } from '@mui/material';
-import { AttachFile as AttachFileIcon, Send as SendIcon, StarBorder as StarBorderIcon } from '@mui/icons-material';
+import { AttachFile as AttachFileIcon, Send as SendIcon, StarBorder as StarBorderIcon,  Delete as DeleteIcon } from '@mui/icons-material';
 import AppBarComponent from './AppBarComponent';
 
 const CreateChatAndMessage = () => {
@@ -46,6 +46,36 @@ const CreateChatAndMessage = () => {
       setChats(data);
     } catch (error) {
       setErrorMessage(error.message || 'Failed to fetch chats.');
+    }
+  };
+
+  const handleDeleteChat = async (chatId) => {
+    const token = localStorage.getItem('jwt');
+    const csrfToken = getCSRFToken();
+
+    try {
+      const response = await fetch(`/api/delete-chat/${chatId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete chat.');
+      }
+
+      // Update the chat list after deletion
+      setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
+      if (chatId === chatId) {
+        setChatId(null);
+        setChatMessages([]);
+      }
+    } catch (error) {
+      setErrorMessage(error.message || 'Error deleting chat.');
     }
   };
 
@@ -215,6 +245,15 @@ const CreateChatAndMessage = () => {
             <ListItem
               key={chat.id}
               disablePadding
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  color="error"
+                  onClick={() => handleDeleteChat(chat.id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              }
               onClick={() => {
                 setChatId(chat.id);
                 fetchChatMessages(chat.id);

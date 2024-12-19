@@ -10,7 +10,6 @@ const AppBarComponent = ({ handleLogout }) => {
         <Box>
           <Button component={Link} to="/home" color="inherit">Home</Button>
           <Button component={Link} to="/chat" color="inherit">Chat</Button>
-          <Button component={Link} to="/groq" color="inherit">Groq</Button>
           <Button onClick={handleLogout} color="inherit">Logout</Button>
         </Box>
       </Toolbar>
