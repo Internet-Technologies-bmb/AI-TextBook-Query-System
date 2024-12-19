@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom'; 
 import { Box, Typography, List, ListItem, ListItemButton, TextField, Button, Divider, IconButton, Alert } from '@mui/material';
 import { AttachFile as AttachFileIcon, Send as SendIcon, StarBorder as StarBorderIcon,  Delete as DeleteIcon } from '@mui/icons-material';
 import AppBarComponent from './AppBarComponent';
 
 const CreateChatAndMessage = () => {
+  const [userProfile, setUserProfile] = useState({});
   const [title, setTitle] = useState('');
   const [chats, setChats] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
+  const [error, setError] = useState(null);
   const [chatId, setChatId] = useState(null);
   const [message, setMessage] = useState('');
   const [file, setFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const pollingInterval = useRef(null);
+  const navigate = useNavigate();
 
   // Fetch CSRF token
   const getCSRFToken = () => {
@@ -80,6 +84,38 @@ const CreateChatAndMessage = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const csrfToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Logout failed');
+      }
+
+      localStorage.removeItem('jwt');
+      document.cookie = 'jwt=; Max-Age=-1; path=/';
+
+      setUserProfile({});
+      setError(null);
+
+      alert('You have been logged out!');
+      navigate('/');
+    } catch (err) {
+      setError('Logout failed: ' + err.message);
+    }
+  };
 
   // Fetch messages for a selected chat
   const fetchChatMessages = async (chatId, forceUpdate = false) => {
@@ -301,7 +337,8 @@ const CreateChatAndMessage = () => {
 
       {/* Chat Area */}
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f5' }}>
-        <AppBarComponent />
+        {/* Navbar */}
+        <AppBarComponent handleLogout={handleLogout} />
         <Box sx={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
           {chatMessages.map((msg, index) => (
             <Box
