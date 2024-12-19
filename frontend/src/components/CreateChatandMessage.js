@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, List, ListItem, ListItemButton, TextField, Button, Divider, IconButton, Alert } from '@mui/material';
 import { AttachFile as AttachFileIcon, Send as SendIcon, StarBorder as StarBorderIcon,  Delete as DeleteIcon } from '@mui/icons-material';
 import AppBarComponent from './AppBarComponent';
@@ -11,6 +11,7 @@ const CreateChatAndMessage = () => {
   const [message, setMessage] = useState('');
   const [file, setFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const pollingInterval = useRef(null);
 
   // Fetch CSRF token
   const getCSRFToken = () => {
@@ -79,29 +80,61 @@ const CreateChatAndMessage = () => {
     }
   };
 
+
   // Fetch messages for a selected chat
-  const fetchChatMessages = async (chatId) => {
-    const token = localStorage.getItem('jwt');
-    const csrfToken = getCSRFToken();
+  const fetchChatMessages = async (chatId, forceUpdate = false) => {
+    if (!chatId) return;
 
-    try {
-      const response = await fetch(`/api/chat/${chatId}/messages`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-      });
+    if (forceUpdate || chatId !== chatId) {
+      const token = localStorage.getItem('jwt');
+      const csrfToken = getCSRFToken();
 
-      if (!response.ok) throw new Error('Failed to fetch chat messages.');
+      try {
+        const response = await fetch(`/api/chat/${chatId}/messages`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-CSRFToken': csrfToken,
+          },
+          credentials: 'include',
+        });
 
-      const data = await response.json();
-      setChatMessages(data.messages || []);
-    } catch (error) {
-      setErrorMessage(error.message || 'Failed to fetch chat messages.');
+        if (!response.ok) throw new Error('Failed to fetch chat messages.');
+
+        const data = await response.json();
+        setChatMessages(data.messages || []);
+      } catch (error) {
+        setErrorMessage(error.message || 'Failed to fetch chat messages.');
+      }
     }
   };
+
+  // Start polling for chat messages
+  const startPollingMessages = (chatId) => {
+    if (pollingInterval.current) clearInterval(pollingInterval.current);
+
+    pollingInterval.current = setInterval(() => {
+      fetchChatMessages(chatId, true); // Fetch new messages periodically
+    }, 3000); // Poll every 3 seconds
+  };
+
+
+  // Handle chat selection
+  const handleChatSelect = (chatId) => {
+    setChatId(chatId);
+    fetchChatMessages(chatId, true);
+    startPollingMessages(chatId);
+  };
+
+  // Stop polling on component unmount
+  useEffect(() => {
+    fetchChats();
+
+    return () => {
+      if (pollingInterval.current) clearInterval(pollingInterval.current);
+    };
+  }, []);
+
 
   // Handle creating a new chat
   const handleCreateChat = async () => {
@@ -255,8 +288,7 @@ const CreateChatAndMessage = () => {
                 </IconButton>
               }
               onClick={() => {
-                setChatId(chat.id);
-                fetchChatMessages(chat.id);
+                handleChatSelect(chat.id)
               }}
             >
               <ListItemButton sx={{ color: 'white' }}>
